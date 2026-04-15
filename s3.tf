@@ -111,12 +111,10 @@ resource "aws_s3_object" "index" {
 }
 
 resource "terraform_data" "apis" {
-  input = jsonencode([
-    for key, value in var.apis : merge(
-      { name = value.name },
+  input = "[${join(",", [
+    for key, value in var.apis :
       value.open_api_spec_url != null
-        ? { url = value.open_api_spec_url }
-        : { yaml = yamldecode(value.open_api_spec_yaml) }
-    )
-  ])
+        ? jsonencode({ name = value.name, url = value.open_api_spec_url })
+        : jsonencode({ name = value.name, yaml = yamldecode(value.open_api_spec_yaml) })
+  ])}]"
 }
