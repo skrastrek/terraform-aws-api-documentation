@@ -111,10 +111,24 @@ resource "aws_s3_object" "index" {
 }
 
 resource "terraform_data" "apis" {
-  input = "[${join(",", [
-    for key, value in var.apis :
-      value.open_api_spec_url != null
-        ? jsonencode({ name = value.name, url = value.open_api_spec_url })
-        : jsonencode({ name = value.name, yaml = yamldecode(value.open_api_spec_yaml) })
-  ])}]"
+  input = jsonencode([
+    for key, value in var.apis : {
+      name = value.name
+      url  = value.open_api_spec_url != null ? value.open_api_spec_url : aws_s3_object.open_api_spec_yaml[key].key
+    }
+  ])
+}
+
+resource "aws_s3_object" "open_api_spec_yaml" {
+  for_each = { for k, v in var.apis : k => v if v.open_api_spec_yaml != null }
+
+  bucket = aws_s3_bucket.this.bucket
+  key    = "${lower(each.key)}-api.yml"
+
+  cache_control = "public, max-age=300" // 5 minutes
+
+  content      = each.value.open_api_spec_yaml
+  content_type = "application/yaml"
+
+  etag = md5(each.value.open_api_spec_yaml)
 }

@@ -45,19 +45,15 @@
   // list of APIs
   const apis = ${apis};
 
-  function initRedoc(api) {
-    Redoc.init(api.url !== undefined ? api.url : api.yaml);
-  }
-
   // initially render first API
-  initRedoc(apis[0]);
+  Redoc.init(apis[0].url);
 
   // dynamically building navigation items
   var $list = document.getElementById('links_container');
   apis.forEach(function(api) {
     var $listitem = document.createElement('li');
     $listitem.innerText = api.name;
-    $listitem.addEventListener('click', function() { initRedoc(api); });
+    $listitem.addEventListener('click', function() { Redoc.init(api.url); });
     $list.appendChild($listitem);
   });
 </script>
