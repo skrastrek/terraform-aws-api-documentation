@@ -112,23 +112,11 @@ resource "aws_s3_object" "index" {
 
 resource "terraform_data" "apis" {
   input = jsonencode([
-    for key, value in var.apis : {
-      name = value.name
-      url  = aws_s3_object.open_api_spec[key].key
-    }
+    for key, value in var.apis : merge(
+      { name = value.name },
+      value.open_api_spec_url != null
+        ? { url = value.open_api_spec_url }
+        : { yaml = yamldecode(value.open_api_spec_yaml) }
+    )
   ])
-}
-
-resource "aws_s3_object" "open_api_spec" {
-  for_each = var.apis
-
-  bucket = aws_s3_bucket.this.bucket
-  key    = "${lower(each.key)}-api.yml"
-
-  cache_control = "public, max-age=300" // 5 minutes
-
-  content      = each.value.open_api_spec
-  content_type = "application/yaml"
-
-  etag = md5(each.value.open_api_spec)
 }

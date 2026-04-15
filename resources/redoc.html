@@ -42,24 +42,22 @@
 
 <script src="https://cdn.redoc.ly/redoc/latest/bundles/redoc.standalone.js"> </script>
 <script>
-  // list of APIS
+  // list of APIs
   const apis = ${apis};
 
-  // initially render first API
-  Redoc.init(apis[0].url);
-
-  function onClick() {
-    var url = this.getAttribute('data-link');
-    Redoc.init(url);
+  function initRedoc(api) {
+    Redoc.init(api.url !== undefined ? api.url : api.yaml);
   }
+
+  // initially render first API
+  initRedoc(apis[0]);
 
   // dynamically building navigation items
   var $list = document.getElementById('links_container');
   apis.forEach(function(api) {
     var $listitem = document.createElement('li');
-    $listitem.setAttribute('data-link', api.url);
     $listitem.innerText = api.name;
-    $listitem.addEventListener('click', onClick);
+    $listitem.addEventListener('click', function() { initRedoc(api); });
     $list.appendChild($listitem);
   });
 </script>
